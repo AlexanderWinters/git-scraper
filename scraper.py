@@ -1,25 +1,44 @@
+import shutil
+
 from git import Repo
+import os
 from datetime import datetime
 from collections import Counter
 
 
-def analyze_git_repo(repo_path):
+def analyze_git_repo(repo_url):
+
+    repo_path = "./temp"
+    repo_name = repo_url.rstrip(".git").split("/")[-1]
     try:
-        # Open the repository
+        # CLONE REPO FROM URL
+        if not os.path.exists(repo_path):
+            print(f"Cloning repository from {repo_url}...")
+            Repo.clone_from(repo_url, repo_path)
+            print("Repository cloned successfully!")
+
         repo = Repo(repo_path)
 
         # Get all commits
         commits = list(repo.iter_commits())
-        author_commits = Counter()
-        author_emails = {}  # Store email for each author
+        email_commits = Counter()
+        email_authors = {}  # Store email for each author
 
         for commit in commits:
-            author_name = commit.author.name
-            author_commits[author_name] += 1
-            author_emails[author_name] = commit.author.email
+            author_email = commit.author.email
+            email_commits[author_email] += 1
+            email_authors[author_email] = commit.author.email
 
-        print(f"\n📁 Repository: {repo_path}")
-        print(f"📊 Total commits: {len(commits)}\n")
+        print(f"\n📁 Repository: {repo_name}")
+        print(f"📊 Total commits: {len(commits)}")
+        print(f"Total authors: {len(email_commits)}\n")
+
+        with open("data.csv", "a") as csv_file:
+            if os.stat("data.csv").st_size == 0:
+                csv_file.write("repository,commits,authors\n")
+            csv_file.write(f"{repo_name},{len(commits)},{len(email_commits)}\n")
+        
+        #PASS THESE THREE ITEMS TO THE CSV
 
         # Print author statistics
         print("👥 Author Statistics:")
@@ -27,43 +46,31 @@ def analyze_git_repo(repo_path):
         print(f"{'Author':<30} {'Email':<30} {'Commits':<10} {'Percentage':>10}")
         print("-" * 80)
 
-        for author, commit_count in sorted(author_commits.items(), key=lambda x: x[1], reverse=True):
+        for email, commit_count in sorted(email_commits.items(), key=lambda x: x[1], reverse=True):
             percentage = (commit_count / len(commits)) * 100
-            email = author_emails[author]
-            print(f"{author:<30} {email:<30} {commit_count:<10} {percentage:>9.1f}%")
+            author_name=email_authors[email].split("@")[0]
+            print(f"{email:<30} {author_name:<30} {commit_count:<10} {percentage:>9.1f}%")
 
         print("-" * 80 + "\n")
 
         # Print commit details
         print("📝 Commit Details:")
-        print("-" * 80 + "\n")
 
-        print(f"\n📁 Repository: {repo_path}")
-        print(f"📊 Total commits: {len(commits)}\n")
+        print(f"\nCleaning up: Removing local repository at {repo_path}")
+        shutil.rmtree(repo_path)
 
-        # # Iterate through each commit
-        # for commit in commits:
-        #     # Format timestamp
-        #     commit_date = datetime.fromtimestamp(commit.committed_date)
-        #     formatted_date = commit_date.strftime("%Y-%m-%d %H:%M:%S")
-        #
-        #     print(f"Commit: {commit.hexsha}")
-        #     print(f"Author: {commit.author.name} <{commit.author.email}>")
-        #     print(f"Date: {formatted_date}")
-        #     print(f"Message: {commit.message.strip()}")
-        #
-        #     # Get statistics for the commit
-        #     stats = commit.stats.total
-        #     print(f"Changes: {stats['files']} files changed, "
-        #           f"{stats['insertions']} insertions(+), "
-        #           f"{stats['deletions']} deletions(-)")
-        #     print("-" * 80 + "\n")
+
+
 
     except Exception as e:
         print(f"Error analyzing repository: {str(e)}")
+        if os.path.exists(repo_path):
+            print(f"\nCleaning up after error...")
+            shutil.rmtree(repo_path)
+            print("Cleanup completed!")
+
 
 
 if __name__ == "__main__":
-    # Replace with your repository path
-    repository_path = input("path to repository: ")
-    analyze_git_repo(repository_path)
+    repo_url = input("Repository URL: ")
+    analyze_git_repo(repo_url)
