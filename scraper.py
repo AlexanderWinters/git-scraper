@@ -4,6 +4,7 @@ from git import Repo
 import os
 from datetime import datetime
 from collections import Counter
+import csv
 
 
 def analyze_git_repo(repo_url):
@@ -24,20 +25,32 @@ def analyze_git_repo(repo_url):
         email_commits = Counter()
         email_authors = {}  # Store email for each author
 
+
         for commit in commits:
             author_email = commit.author.email
             email_commits[author_email] += 1
             email_authors[author_email] = commit.author.email
 
+        last_commit = commits[0]  # First commit in the list is the most recent
+        last_commit_date = datetime.fromtimestamp(last_commit.committed_date)
+
         print(f"\n📁 Repository: {repo_name}")
         print(f"📊 Total commits: {len(commits)}")
-        print(f"Total authors: {len(email_commits)}\n")
+        print(f"Total authors: {len(email_commits)}")
+        print(f"Last commit: {last_commit_date.strftime('%Y-%m-%d %H:%M:%S')}\n")
 
-        with open("data.csv", "a") as csv_file:
+        with open("data.csv", "a", newline='') as csv_file:
+            fieldnames = ["repository", "commits", "authors", "last_commit"]
+            writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
             if os.stat("data.csv").st_size == 0:
-                csv_file.write("repository,commits,authors\n")
-            csv_file.write(f"{repo_name},{len(commits)},{len(email_commits)}\n")
-        
+                writer.writeheader()
+            writer.writerow({
+                "repository": repo_name,
+                "commits": len(commits),
+                "authors": len(email_commits) - 1,
+                "last_commit": last_commit_date.strftime('%Y-%m-%d')
+            })
+
         #PASS THESE THREE ITEMS TO THE CSV
 
         # Print author statistics
