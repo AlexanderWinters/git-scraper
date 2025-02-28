@@ -85,5 +85,26 @@ def analyze_git_repo(repo_url):
 
 
 if __name__ == "__main__":
-    repo_url = input("Repository URL: ")
-    analyze_git_repo(repo_url)
+    repo_urls = [
+        "https://gitea.speldesign.uu.se/2025-GD2/Bandits_shoot_em_up.git"
+        "https://gitea.speldesign.uu.se/2025-GD2/Hog_Chase.git"
+        "https://gitea.speldesign.uu.se/2025-GD2/BSNW.git"
+        "https://gitea.speldesign.uu.se/2025-GD2/Megalodon.git"
+        "https://gitea.speldesign.uu.se/2025-GD2/The_Dancer.git"
+
+    ]
+
+    # Create or clear the data.csv file
+    with open("data.csv", "w", newline='') as csv_file:
+        fieldnames = ["repository", "commits", "authors", "last_commit"]
+        writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+        writer.writeheader()
+
+    # Process each repository
+    for repo_url in repo_urls:
+        print(f"\nProcessing repository: {repo_url}")
+        try:
+            analyze_git_repo(repo_url)
+        except Exception as e:
+            print(f"Failed to process repository {repo_url}: {str(e)}")
+            continue
