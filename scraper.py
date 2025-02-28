@@ -9,6 +9,10 @@ import csv
 
 def analyze_git_repo(repo_url):
 
+    if not repo_url.endswith('.git'):
+        repo_url = repo_url + '.git'
+        print(f"Added .git extension. New URL: {repo_url}")
+
     repo_path = "./temp"
     repo_name = repo_url.rstrip(".git").split("/")[-1]
     try:
@@ -86,11 +90,10 @@ def analyze_git_repo(repo_url):
 
 if __name__ == "__main__":
     repo_urls = [
-        "https://gitea.speldesign.uu.se/2025-GD2/Bandits_shoot_em_up.git"
-        "https://gitea.speldesign.uu.se/2025-GD2/Hog_Chase.git"
-        "https://gitea.speldesign.uu.se/2025-GD2/BSNW.git"
-        "https://gitea.speldesign.uu.se/2025-GD2/Megalodon.git"
-        "https://gitea.speldesign.uu.se/2025-GD2/The_Dancer.git"
+
+
+
+
 
     ]
 
